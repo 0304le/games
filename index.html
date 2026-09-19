@@ -189,7 +189,6 @@
     <div id="coinBox">🪙 <span id="coins">0</span></div>
   </div>
 
-  <!-- 主城 -->
   <div class="screen active" id="home">
     <div class="stage-card">
       <div class="stage-num">当前关卡</div>
@@ -206,7 +205,6 @@
     </div>
   </div>
 
-  <!-- 抽卡 -->
   <div class="screen" id="gacha">
     <div class="panel-title">🎰 梗池十连抽</div>
     <div class="rates">
@@ -221,7 +219,6 @@
     <div id="gachaResult"></div>
   </div>
 
-  <!-- 图鉴编队 -->
   <div class="screen" id="roster">
     <div class="panel-title">👥 我的梗图卡</div>
     <div class="team-slots" id="teamSlots"></div>
@@ -229,7 +226,6 @@
     <button class="btn gray small" id="backHome2">← 返回（编队自动保存）</button>
   </div>
 
-  <!-- 战斗 -->
   <div class="screen" id="battle">
     <div class="panel-title" id="battleTitle">🗡️ 战斗中</div>
     <div id="shakeWrap" style="display:flex;flex-direction:column;flex:1;gap:10px;overflow:hidden;">
@@ -243,7 +239,6 @@
     </div>
   </div>
 
-  <!-- 结算 -->
   <div class="overlay" id="resultOverlay">
     <div id="resultTitle"></div>
     <div id="resultDetail"></div>
@@ -256,7 +251,6 @@
 const $ = s => document.querySelector(s);
 const assetUrl = path => new URL(path, window.location.href).href;
 
-/* ================= 卡池（fx/fy/z/asp 为脸部位移参数） ================= */
 const POOL = [
   { id:"daxiao",  img:"13543a66d3ebcc4f881abbecc4985245.jpg", fx:.433, fy:.256, z:570, asp:.457,
     name:"大笑室友", rarity:"N",  atk:110, hp:1000, spd:100,
@@ -285,16 +279,13 @@ const POOL = [
 ];
 const RARITY_W = { N:55, R:30, SR:12, SSR:3 };
 
-/* ================= 存档 ================= */
 let S;
 try { S = JSON.parse(localStorage.getItem("meme_rpg") || "null"); } catch(e) { S = null; }
-if (!S) S = { coins: 1200, stage: 1, own: { daxiao:{n:1}, tiaomei:{n:1}, yeshi:{n:1} }, team: [] };
+if (!S) S = { coins: 9999999, stage: 1, own: { daxiao:{n:1}, tiaomei:{n:1}, yeshi:{n:1} }, team: [] };
 function save(){ localStorage.setItem("meme_rpg", JSON.stringify(S)); }
 function starOf(id){ return Math.min(5, S.own[id]?.n || 0) ; }
 function cardById(id){ return POOL.find(c => c.id === id); }
 function statMul(st){ return 1 + (st - 1) * .15; }
-
-/* ================= 通用 ================= */
 function avatarHTML(c, extraStyle) {
   return `<img src="${assetUrl(c.img)}" style="width:${c.z}%;
     left:calc(50% - ${c.fx} * ${c.z} * 1%);
@@ -315,8 +306,6 @@ function cardHTML(c, opt = {}) {
     ${opt.skill ? `<div class="skillbar"><b>${c.skill.name}</b><br>${c.skill.desc}</div>` : ""}
   </div>`;
 }
-
-/* ================= 音效 ================= */
 let AC = null;
 function ac(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
 function beep(f, dur, type="square", vol=.15, delay=0){
@@ -331,15 +320,11 @@ function beep(f, dur, type="square", vol=.15, delay=0){
   }catch(e){}
 }
 function jingle(notes, dur=.12, type="square"){ notes.forEach(([f,d]) => beep(f, dur, type, .15, d)); }
-
-/* ================= 界面切换 ================= */
 function show(id){
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   $(id).classList.add("active");
 }
 function updateCoins(){ $("#coins").textContent = S.coins; }
-
-/* ================= 主城 ================= */
 function genEnemyTeam(stage){
   let pool = POOL.filter(c => stage <= 2 ? c.rarity === "N" || c.rarity === "R"
                     : stage <= 4 ? c.rarity !== "SSR" : true);
@@ -358,8 +343,6 @@ function renderHome(){
   $("#enemyMini").innerHTML = et.map(c =>
     `<div class="mini">${avatarHTML(c)}<div style="position:absolute;inset:0"></div></div>`).join("");
 }
-
-/* ================= 抽卡 ================= */
 function rollRarity(guaranteeR){
   let total = 0; for (const k in RARITY_W) total += RARITY_W[k];
   let r = Math.random() * total;
@@ -403,8 +386,6 @@ async function doPull(n){
   renderRoster();
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-/* ================= 图鉴编队 ================= */
 function renderRoster(){
   const grid = $("#rosterGrid");
   grid.innerHTML = "";
@@ -442,8 +423,6 @@ function autoTeam(){
   S.team = owned.slice(0,3).map(c => c.id);
   save();
 }
-
-/* ================= 战斗 ================= */
 let battleToken = 0;
 function mkFighter(c, side){
   const st = side === "p" ? starOf(c.id) : 1;
@@ -499,7 +478,6 @@ function shakeScreen(){
   const w = $("#shakeWrap");
   w.classList.remove("battle-shake"); void w.offsetWidth; w.classList.add("battle-shake");
 }
-
 const HIT_QUIPS = ["一记闷棍","一个脑瓜崩","贴脸开大","顺手就是一下","上来就是干"];
 const DODGE_QUIPS = ["侧身一躲：就这？","看穿了一切","闪得潇洒至极","根本懒得理"];
 async function attack(a, d, token){
@@ -561,7 +539,6 @@ async function attack(a, d, token){
   await sleep(460);
   return true;
 }
-
 async function startBattle(){
   ac();
   if (!S.team || S.team.length === 0) { alert("先去「图鉴编队」选 3 张卡！"); return; }
@@ -612,7 +589,6 @@ async function startBattle(){
     }
   }
 }
-
 function endBattle(win, pTeam, eTeam, token){
   if (token !== battleToken) return;
   battleToken++;
@@ -629,8 +605,6 @@ function endBattle(win, pTeam, eTeam, token){
       : jingle([[400,0],[300,.15],[200,.3]], .18, "sawtooth");
   renderHome();
 }
-
-/* ================= 事件绑定 ================= */
 $("#gachaBtn").addEventListener("click", () => { ac(); updateCoins(); show("#gacha"); });
 $("#rosterBtn").addEventListener("click", () => { ac(); renderRoster(); show("#roster"); });
 $("#backHome1").addEventListener("click", () => { renderHome(); show("#home"); });
@@ -640,8 +614,6 @@ $("#pull1").addEventListener("click", () => doPull(1));
 $("#pull10").addEventListener("click", () => doPull(10));
 $("#fightBtn").addEventListener("click", () => { autoTeam(); startBattle(); });
 $("#againBtn").addEventListener("click", () => { $("#resultOverlay").classList.remove("active"); startBattle(); });
-
-/* ================= 启动 ================= */
 autoTeam();
 renderHome();
 </script>
