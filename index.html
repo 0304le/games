@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#171030">
 <title>梗图大乱斗 · 抽卡对战</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -11,6 +12,7 @@
     font-family:"Microsoft YaHei","PingFang SC",sans-serif;
     background:radial-gradient(1200px 700px at 50% -10%, #3b2a6b 0%, #241a47 55%, #171030 100%);
     color:#fff; user-select:none; touch-action:manipulation;
+    overscroll-behavior:none;
   }
   #app { width:min(100vw,560px); height:100%; margin:0 auto; position:relative; display:flex; flex-direction:column; }
 
@@ -251,6 +253,9 @@
 </div>
 
 <script>
+const $ = s => document.querySelector(s);
+const assetUrl = path => new URL(path, window.location.href).href;
+
 /* ================= 卡池（fx/fy/z/asp 为脸部位移参数） ================= */
 const POOL = [
   { id:"daxiao",  img:"13543a66d3ebcc4f881abbecc4985245.jpg", fx:.433, fy:.256, z:570, asp:.457,
@@ -279,7 +284,6 @@ const POOL = [
     skill:{ name:"息臭冲击波", desc:"2.5倍无视防御的神圣一击，25%熏晕对面", type:"poop", mult:2.5, stunCh:.25 } },
 ];
 const RARITY_W = { N:55, R:30, SR:12, SSR:3 };
-const $ = s => document.querySelector(s);
 
 /* ================= 存档 ================= */
 let S;
@@ -292,7 +296,7 @@ function statMul(st){ return 1 + (st - 1) * .15; }
 
 /* ================= 通用 ================= */
 function avatarHTML(c, extraStyle) {
-  return `<img src="${c.img}" style="width:${c.z}%;
+  return `<img src="${assetUrl(c.img)}" style="width:${c.z}%;
     left:calc(50% - ${c.fx} * ${c.z} * 1%);
     top:calc(50% - ${c.fy} * ${c.z} * ${c.asp} * 1%);${extraStyle || ""}">`;
 }
