@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>梗图大乱斗 · 抽卡对战</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; }
+  body {
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+    background:radial-gradient(1200px 700px at 50% -10%, #3b2a6b 0%, #241a47 55%, #171030 100%);
+    color:#fff; user-select:none; touch-action:manipulation;
+  }
+  #app { width:min(100vw,560px); height:100%; margin:0 auto; position:relative; display:flex; flex-direction:column; }
+
+  /* ===== 顶栏 ===== */
+  #topbar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 16px; flex:none;
+  }
+  #logo { font-size:20px; font-weight:bold; letter-spacing:2px;
+    background:linear-gradient(90deg,#ffd94a,#ff9a3d); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #coinBox { background:#ffffff14; border:1px solid #ffffff2e; border-radius:20px;
+    padding:5px 14px; font-size:15px; font-weight:bold; color:#ffd94a; }
+
+  .screen { flex:1; display:none; flex-direction:column; overflow:hidden; padding:0 16px 16px; }
+  .screen.active { display:flex; }
+
+  /* ===== 主城 ===== */
+  #home { align-items:center; justify-content:center; gap:14px; text-align:center; }
+  .stage-card {
+    width:100%; background:#ffffff10; border:1px solid #ffffff22; border-radius:18px; padding:20px;
+  }
+  .stage-num { font-size:15px; color:#9a8fd0; }
+  .stage-title { font-size:30px; font-weight:bold; margin:6px 0; }
+  .stage-sub { font-size:13px; color:#b7abec; margin-bottom:14px; }
+  .enemy-mini { display:flex; justify-content:center; gap:10px; }
+  .enemy-mini .mini { width:54px; height:54px; border-radius:50%; overflow:hidden; border:2px solid #fff3; position:relative; background:#111; }
+  .enemy-mini .mini img { position:absolute; }
+  .menu-btns { display:flex; gap:12px; width:100%; }
+  .btn {
+    flex:1; font-size:18px; font-weight:bold; color:#fff; border:none; border-radius:14px;
+    padding:15px 0; cursor:pointer; transition:transform .08s; font-family:inherit;
+  }
+  .btn:active { transform:scale(.96); }
+  .btn.gold { background:linear-gradient(160deg,#ffd94a,#ff9a3d); color:#5b3310; box-shadow:0 4px 14px #ff9a3d55; }
+  .btn.purple { background:linear-gradient(160deg,#9b6bff,#6c3df0); box-shadow:0 4px 14px #6c3df055; }
+  .btn.blue { background:linear-gradient(160deg,#4aa3ff,#2f6df0); box-shadow:0 4px 14px #2f6df055; }
+  .btn.green { background:linear-gradient(160deg,#5fd97a,#2fae54); box-shadow:0 4px 14px #2fae5455; }
+  .btn.gray { background:#ffffff18; border:1px solid #ffffff2e; }
+  .btn.small { font-size:15px; padding:11px 0; }
+
+  /* ===== 抽卡 ===== */
+  #gacha { gap:12px; }
+  .panel-title { font-size:22px; font-weight:bold; text-align:center; margin:4px 0; }
+  .rates { text-align:center; font-size:12.5px; color:#9a8fd0; line-height:1.8;
+    background:#ffffff0d; border-radius:12px; padding:8px; }
+  .rates b { font-weight:bold; }
+  .rate-N{color:#aab}.rate-R{color:#4aa3ff}.rate-SR{color:#c07dff}.rate-SSR{color:#ffd94a}
+  .gacha-btns { display:flex; gap:12px; }
+  #gachaResult { flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; align-content:start; padding:4px 0; }
+
+  /* ===== 卡牌 ===== */
+  .card {
+    position:relative; background:#1d1637; border:2px solid #444; border-radius:12px;
+    padding:7px 6px 6px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .card .avatar {
+    width:72%; aspect-ratio:1; border-radius:50%; overflow:hidden; position:relative;
+    background:#000; margin:2px auto;
+  }
+  .card .avatar img { position:absolute; }
+  .card .avatar::after { content:""; position:absolute; inset:0; border-radius:50%;
+    box-shadow:inset 0 -10px 16px rgba(0,0,0,.4); }
+  .card .cname { font-size:13px; font-weight:bold; white-space:nowrap; }
+  .card .cstars { font-size:10px; color:#ffd94a; letter-spacing:1px; line-height:1; }
+  .card .cstats { font-size:10.5px; color:#9a8fd0; }
+  .card.r-N { border-color:#5a5a72; }
+  .card.r-R { border-color:#4aa3ff; box-shadow:0 0 10px #4aa3ff33; }
+  .card.r-SR { border-color:#c07dff; box-shadow:0 0 12px #c07dff44; }
+  .card.r-SSR { border-color:#ffd94a; background:linear-gradient(#2c2245,#3d2d10); box-shadow:0 0 16px #ffd94a55; }
+  .card.r-SSR .cname { color:#ffd94a; }
+  .card .chip { position:absolute; top:-8px; left:-6px; font-size:10px; font-weight:bold;
+    padding:2px 7px; border-radius:8px; border:1.5px solid #1d1637; }
+  .chip.c-N{background:#5a5a72} .chip.c-R{background:#2f6df0} .chip.c-SR{background:#9b3df0} .chip.c-SSR{background:linear-gradient(90deg,#ff9a3d,#ffd94a); color:#5b3310;}
+  .card .dupe { position:absolute; top:-8px; right:-6px; font-size:10px; font-weight:bold;
+    background:#e04b3a; padding:2px 7px; border-radius:8px; }
+  .card.selected { outline:3px solid #ffd94a; outline-offset:1px; }
+  .card .skillbar { font-size:10px; color:#8f84c8; text-align:center; line-height:1.35;
+    width:100%; border-top:1px dashed #ffffff1c; padding-top:3px; }
+  .card .skillbar b { color:#c9bff5; }
+
+  /* ===== 图鉴/编队 ===== */
+  #roster { gap:12px; }
+  .team-slots { display:flex; justify-content:center; gap:10px; background:#ffffff0d; border-radius:12px; padding:10px; }
+  .slot { width:58px; height:58px; border-radius:50%; border:2px dashed #ffffff3a;
+    overflow:hidden; position:relative; background:#00000055; }
+  .slot.filled { border-style:solid; }
+  .slot img { position:absolute; }
+  #rosterGrid { flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; align-content:start; padding:2px 0; }
+  .roster-card { flex-direction:row; padding:8px; gap:8px; cursor:pointer; }
+  .roster-card .avatar { width:64px; flex:none; }
+  .roster-card .info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; justify-content:center; }
+  .roster-card .cname { font-size:14px; }
+  .roster-card .cstats { text-align:left; }
+  .roster-card .skillbar { text-align:left; border-top:none; padding-top:0; }
+  .roster-card.locked { opacity:.38; filter:grayscale(1); }
+
+  /* ===== 战斗 ===== */
+  #battle { gap:10px; }
+  #arena { position:relative; display:flex; align-items:center; justify-content:space-around; padding-top:8px; }
+  .fighter { width:38%; max-width:150px; text-align:center; position:relative; }
+  .fighter .f-avatar {
+    width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden; position:relative; background:#000;
+    border:3px solid #555; box-shadow:0 6px 18px #000a;
+  }
+  .fighter .f-avatar img { position:absolute; }
+  .fighter.p .f-avatar { border-color:#4aa3ff; }
+  .fighter.e .f-avatar { border-color:#ff5a4a; }
+  .fighter .fname { font-size:13px; font-weight:bold; margin-top:5px; }
+  .hpbar { height:14px; background:#00000088; border-radius:8px; overflow:hidden;
+    border:1px solid #ffffff2e; margin-top:5px; position:relative; }
+  .hpbar .fill { height:100%; background:linear-gradient(90deg,#5fd97a,#2fae54); transition:width .35s; border-radius:8px; }
+  .fighter.e .hpbar .fill { background:linear-gradient(90deg,#ff7a5f,#e04b3a); }
+  .hpbar .hptext { position:absolute; inset:0; font-size:9.5px; display:flex; align-items:center; justify-content:center; color:#fff; text-shadow:0 1px 2px #000; }
+  .vs { font-size:26px; font-weight:bold; color:#ffd94a; text-shadow:0 0 14px #ffd94a88; }
+  .fighter.dead .f-avatar { filter:grayscale(1) brightness(.5); }
+  .fighter .remains { font-size:10px; color:#9a8fd0; margin-top:3px; }
+
+  #banner {
+    position:absolute; left:50%; top:34%; transform:translate(-50%,-50%) scale(0);
+    font-size:22px; font-weight:bold; padding:10px 26px; border-radius:14px; z-index:20;
+    background:#000000d9; border:2px solid #ffd94a; color:#ffd94a; white-space:nowrap;
+    transition:transform .18s; pointer-events:none;
+  }
+  #banner.show { transform:translate(-50%,-50%) scale(1); }
+
+  .dmg-pop { position:absolute; font-size:24px; font-weight:bold; z-index:15; pointer-events:none;
+    text-shadow:0 2px 4px #000; animation:dmgrise 1s forwards; }
+  @keyframes dmgrise { 0%{ transform:translateY(0) scale(.6); opacity:0;}
+    15%{ transform:translateY(-10px) scale(1.15); opacity:1;}
+    100%{ transform:translateY(-52px) scale(1); opacity:0;} }
+
+  .fighter.lunge { animation:lunge .38s; }
+  @keyframes lunge { 0%,100%{ transform:translateX(0);} 45%{ transform:translateX(var(--lungedir,30px)) scale(1.06);} }
+  .fighter.hurt { animation:hurt .35s; }
+  @keyframes hurt { 0%,100%{ filter:none;} 30%{ filter:brightness(2.2) saturate(0);} 60%{ transform:translateX(-5px);} }
+  .fighter.entering { animation:enter .45s; }
+  @keyframes enter { 0%{ transform:translateY(30px) scale(.6); opacity:0;} 100%{ transform:none; opacity:1;} }
+
+  #shakeWrap.battle-shake { animation:bshake .3s; }
+  @keyframes bshake { 0%,100%{transform:none;} 25%{transform:translate(-6px,3px);} 50%{transform:translate(5px,-4px);} 75%{transform:translate(-3px,-2px);} }
+
+  #battleLog { flex:1; min-height:88px; overflow-y:auto; background:#ffffff0a; border:1px solid #ffffff17;
+    border-radius:12px; padding:9px 12px; font-size:12.5px; line-height:1.75; color:#cfc6f2; }
+  #battleLog .crit { color:#ff9a3d; font-weight:bold; }
+  #battleLog .skill { color:#ffd94a; }
+  #battleLog .sys { color:#7de08a; }
+
+  /* ===== 结算 ===== */
+  .overlay { position:absolute; inset:0; z-index:40; background:#000000b3; display:none;
+    flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+  .overlay.active { display:flex; }
+  #resultTitle { font-size:52px; font-weight:bold; letter-spacing:6px; }
+  #resultTitle.win { color:#ffd94a; text-shadow:0 0 30px #ffd94a88; }
+  #resultTitle.lose { color:#8a8aa8; }
+  #resultDetail { font-size:16px; color:#cfc6f2; text-align:center; line-height:2; }
+  #resultDetail b { color:#ffd94a; }
+  .overlay .btn { width:200px; flex:none; }
+
+  /* 抽卡展示动画 */
+  .reveal { animation:reveal .5s backwards; }
+  @keyframes reveal { 0%{ transform:rotateY(90deg) scale(.7); opacity:0;} 100%{ transform:none; opacity:1;} }
+  .ssr-flash { position:fixed; inset:0; z-index:60; background:radial-gradient(circle,#ffd94add,#ffd94a00 70%);
+    pointer-events:none; animation:ssrf .8s forwards; }
+  @keyframes ssrf { 0%{ opacity:0;} 25%{ opacity:1;} 100%{ opacity:0;} }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:#ffffff33; border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div id="logo">🔥 梗图大乱斗</div>
+    <div id="coinBox">🪙 <span id="coins">0</span></div>
+  </div>
+
+  <!-- 主城 -->
+  <div class="screen active" id="home">
+    <div class="stage-card">
+      <div class="stage-num">当前关卡</div>
+      <div class="stage-title" id="stageTitle">第 1 关</div>
+      <div class="stage-sub" id="stageSub">对手阵容预览</div>
+      <div class="enemy-mini" id="enemyMini"></div>
+    </div>
+    <div class="menu-btns">
+      <button class="btn green" id="fightBtn">🗡️ 出战</button>
+    </div>
+    <div class="menu-btns">
+      <button class="btn gold" id="gachaBtn">🎰 抽卡</button>
+      <button class="btn purple" id="rosterBtn">👥 图鉴编队</button>
+    </div>
+  </div>
+
+  <!-- 抽卡 -->
+  <div class="screen" id="gacha">
+    <div class="panel-title">🎰 梗池十连抽</div>
+    <div class="rates">
+      抽卡概率：<b class="rate-N">N 55%</b> · <b class="rate-R">R 30%</b> · <b class="rate-SR">SR 12%</b> · <b class="rate-SSR">SSR 3%</b><br>
+      重复卡自动转成 ⭐升星，每星属性 +15% ｜ 十连必出 R 以上
+    </div>
+    <div class="gacha-btns">
+      <button class="btn gray small" id="backHome1">← 返回</button>
+      <button class="btn blue small" id="pull1">单抽 🪙100</button>
+      <button class="btn gold small" id="pull10">十连 🪙900</button>
+    </div>
+    <div id="gachaResult"></div>
+  </div>
+
+  <!-- 图鉴编队 -->
+  <div class="screen" id="roster">
+    <div class="panel-title">👥 我的梗图卡</div>
+    <div class="team-slots" id="teamSlots"></div>
+    <div id="rosterGrid"></div>
+    <button class="btn gray small" id="backHome2">← 返回（编队自动保存）</button>
+  </div>
+
+  <!-- 战斗 -->
+  <div class="screen" id="battle">
+    <div class="panel-title" id="battleTitle">🗡️ 战斗中</div>
+    <div id="shakeWrap" style="display:flex;flex-direction:column;flex:1;gap:10px;overflow:hidden;">
+      <div id="arena">
+        <div class="fighter p" id="fP"></div>
+        <div class="vs">VS</div>
+        <div class="fighter e" id="fE"></div>
+        <div id="banner"></div>
+      </div>
+      <div id="battleLog"></div>
+    </div>
+  </div>
+
+  <!-- 结算 -->
+  <div class="overlay" id="resultOverlay">
+    <div id="resultTitle"></div>
+    <div id="resultDetail"></div>
+    <button class="btn green" id="againBtn">再 战</button>
+    <button class="btn gray" id="backHome3">返回主城</button>
+  </div>
+</div>
+
+<script>
+/* ================= 卡池（fx/fy/z/asp 为脸部位移参数） ================= */
+const POOL = [
+  { id:"daxiao",  img:"13543a66d3ebcc4f881abbecc4985245.jpg", fx:.433, fy:.256, z:570, asp:.457,
+    name:"大笑室友", rarity:"N",  atk:110, hp:1000, spd:100,
+    skill:{ name:"魔性大笑", desc:"攻击时30%把对面逗笑，笑到跳过回合", type:"stun", mult:1.5, stunCh:.25 } },
+  { id:"tiaomei", img:"ca2df4d442a8ee5783826352e70e0eba.jpg", fx:.425, fy:.204, z:570, asp:.457,
+    name:"挑眉室友", rarity:"N",  atk:100, hp:1120, spd:95,
+    skill:{ name:"挑衅眼神", desc:"1.2倍伤害并嘲讽，对面攻击-25%", type:"atkDown", mult:1.2 } },
+  { id:"paoxiao", img:"47b2f73fe3d73a2c8f9965fb86460356.jpg", fx:.45, fy:.41, z:520, asp:.457,
+    name:"咆哮室友", rarity:"R",  atk:165, hp:1050, spd:105,
+    skill:{ name:"河东狮吼", desc:"一声咆哮，1.8倍伤害", type:"roar", mult:1.8 } },
+  { id:"jiaoshi", img:"4f18287d7544bf12dd4b17c5edb191c4.jpg", fx:.22, fy:.62, z:290, asp:.677,
+    name:"教室笑男", rarity:"R",  atk:130, hp:1000, spd:130,
+    skill:{ name:"低头偷笑", desc:"1.4倍伤害并闪避提升，爱打不着", type:"dodge", mult:1.4 } },
+  { id:"yeshi",   img:"81504f4280a25b67f3bbe46624420752.jpg", fx:.794, fy:.385, z:320, asp:2.16,
+    name:"夜市笑男", rarity:"R",  atk:120, hp:1220, spd:90,
+    skill:{ name:"蹲地狂笑", desc:"1.3倍伤害并笑回血15%", type:"heal", mult:1.3 } },
+  { id:"ning",    img:"fa7b6c220003cbc282de59514c401b02.jpg", fx:.35, fy:.28, z:135, asp:1.333,
+    name:"镜中凝视", rarity:"SR", atk:140, hp:1320, spd:110,
+    skill:{ name:"死亡凝视", desc:"1.6倍伤害，35%冻结对面一回合", type:"stun", mult:1.6, stunCh:.35 } },
+  { id:"zhongzhi",img:"d54ed6de60d949a1ff92201c513dbe0a.jpg", fx:.57, fy:.66, z:150, asp:1.32,
+    name:"中指哥", rarity:"SR",  atk:205, hp:900,  spd:125,
+    skill:{ name:"优雅中指", desc:"2.3倍伤害，极易暴击（真实伤害）", type:"crit", mult:2.3 } },
+  { id:"bian",    img:"6ca61d49db0b92e7a58b9cb313c17fe9.png", fx:.435, fy:.242, z:195, asp:1.784,
+    name:"大便超人", rarity:"SSR", atk:225, hp:1550, spd:115,
+    skill:{ name:"息臭冲击波", desc:"2.5倍无视防御的神圣一击，25%熏晕对面", type:"poop", mult:2.5, stunCh:.25 } },
+];
+const RARITY_W = { N:55, R:30, SR:12, SSR:3 };
+const $ = s => document.querySelector(s);
+
+/* ================= 存档 ================= */
+let S;
+try { S = JSON.parse(localStorage.getItem("meme_rpg") || "null"); } catch(e) { S = null; }
+if (!S) S = { coins: 1200, stage: 1, own: { daxiao:{n:1}, tiaomei:{n:1}, yeshi:{n:1} }, team: [] };
+function save(){ localStorage.setItem("meme_rpg", JSON.stringify(S)); }
+function starOf(id){ return Math.min(5, S.own[id]?.n || 0) ; }
+function cardById(id){ return POOL.find(c => c.id === id); }
+function statMul(st){ return 1 + (st - 1) * .15; }
+
+/* ================= 通用 ================= */
+function avatarHTML(c, extraStyle) {
+  return `<img src="${c.img}" style="width:${c.z}%;
+    left:calc(50% - ${c.fx} * ${c.z} * 1%);
+    top:calc(50% - ${c.fy} * ${c.z} * ${c.asp} * 1%);${extraStyle || ""}">`;
+}
+function cardHTML(c, opt = {}) {
+  const st = starOf(c.id), own = S.own[c.id];
+  const sel = S.team.includes(c.id) ? "selected" : "";
+  const stars = "⭐".repeat(st);
+  const mul = statMul(st);
+  return `<div class="card r-${c.rarity} ${sel} ${opt.cls || ""}" data-id="${c.id}">
+    <div class="chip c-${c.rarity}">${c.rarity}</div>
+    ${opt.showDupe && own ? `<div class="dupe">+1⭐</div>` : ""}
+    <div class="avatar">${avatarHTML(c)}</div>
+    <div class="cname">${c.name}</div>
+    <div class="cstars">${stars || "☆"}</div>
+    <div class="cstats">⚔${Math.round(c.atk*mul)} 🛡${Math.round(c.hp*mul)} ⚡${c.spd}</div>
+    ${opt.skill ? `<div class="skillbar"><b>${c.skill.name}</b><br>${c.skill.desc}</div>` : ""}
+  </div>`;
+}
+
+/* ================= 音效 ================= */
+let AC = null;
+function ac(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+function beep(f, dur, type="square", vol=.15, delay=0){
+  try{
+    const ctx = ac(), t = ctx.currentTime + delay;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(40, f*.6), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur);
+  }catch(e){}
+}
+function jingle(notes, dur=.12, type="square"){ notes.forEach(([f,d]) => beep(f, dur, type, .15, d)); }
+
+/* ================= 界面切换 ================= */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+function updateCoins(){ $("#coins").textContent = S.coins; }
+
+/* ================= 主城 ================= */
+function genEnemyTeam(stage){
+  let pool = POOL.filter(c => stage <= 2 ? c.rarity === "N" || c.rarity === "R"
+                    : stage <= 4 ? c.rarity !== "SSR" : true);
+  if (stage >= 5 && Math.random() < Math.min(.5, .1 + stage * .04)) pool = POOL;
+  const team = [];
+  const bag = [...pool];
+  while (team.length < 3 && bag.length) team.push(bag.splice(Math.floor(Math.random()*bag.length),1)[0]);
+  const mul = 1 + (stage - 1) * .13;
+  return team.map(c => ({ ...c, atk: Math.round(c.atk*mul), hp: Math.round(c.hp*mul) }));
+}
+function renderHome(){
+  updateCoins();
+  $("#stageTitle").textContent = `第 ${S.stage} 关`;
+  $("#stageSub").textContent = `赢了 +${100 + S.stage*40} 金币，对手会越来越强`;
+  const et = genEnemyTeam(S.stage);
+  $("#enemyMini").innerHTML = et.map(c =>
+    `<div class="mini">${avatarHTML(c)}<div style="position:absolute;inset:0"></div></div>`).join("");
+}
+
+/* ================= 抽卡 ================= */
+function rollRarity(guaranteeR){
+  let total = 0; for (const k in RARITY_W) total += RARITY_W[k];
+  let r = Math.random() * total;
+  for (const k of ["SSR","SR","R","N"]) { r -= RARITY_W[k]; if (r <= 0) return k; }
+  return guaranteeR ? "R" : "N";
+}
+function rollCard(guaranteeR){
+  const rar = rollRarity(guaranteeR);
+  const pool = POOL.filter(c => c.rarity === rar);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+async function doPull(n){
+  const cost = n === 1 ? 100 : 900;
+  if (S.coins < cost) { alert("金币不够啦，去闯关赚金币！"); return; }
+  S.coins -= cost;
+  const results = [];
+  for (let i = 0; i < n; i++) results.push(rollCard(false));
+  if (n === 10 && !results.some(c => c.rarity !== "N")) results[9] = rollCard(true);
+
+  $("#gachaResult").innerHTML = "";
+  for (let i = 0; i < results.length; i++) {
+    const c = results[i];
+    const had = !!S.own[c.id];
+    S.own[c.id] = S.own[c.id] || { n: 0 };
+    S.own[c.id].n++;
+    const duped = had && starOf(c.id) <= 5;
+    const div = document.createElement("div");
+    div.innerHTML = cardHTML(c, { showDupe: duped, skill: true, cls: "reveal" });
+    const el = div.firstElementChild;
+    el.style.animationDelay = (i * .09) + "s";
+    $("#gachaResult").prepend(el);
+    if (c.rarity === "SSR") {
+      const f = document.createElement("div"); f.className = "ssr-flash"; document.body.appendChild(f);
+      setTimeout(() => f.remove(), 900);
+      jingle([[523,0],[659,.1],[784,.2],[1047,.3],[1319,.42]], .16);
+    } else if (c.rarity === "SR") jingle([[660,0],[880,.12]], .12);
+    else beep(c.rarity === "R" ? 660 : 440, .1, "square", .1);
+    await sleep(120);
+  }
+  save(); updateCoins();
+  renderRoster();
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= 图鉴编队 ================= */
+function renderRoster(){
+  const grid = $("#rosterGrid");
+  grid.innerHTML = "";
+  const sorted = [...POOL].sort((a,b) =>
+    (S.own[b.id]?.n?1:0) - (S.own[a.id]?.n?1:0) || Object.keys(RARITY_W).indexOf(a.rarity) - Object.keys(RARITY_W).indexOf(b.rarity));
+  sorted.forEach(c => {
+    const own = S.own[c.id];
+    const div = document.createElement("div");
+    div.innerHTML = cardHTML(c, { cls: own ? "roster-card" : "roster-card locked", skill: true });
+    const el = div.firstElementChild;
+    if (own) el.addEventListener("click", () => toggleTeam(c.id));
+    grid.appendChild(el);
+  });
+  const slots = $("#teamSlots");
+  slots.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    const id = S.team[i];
+    const s = document.createElement("div");
+    s.className = "slot" + (id ? " filled" : "");
+    if (id) { const c = cardById(id); s.innerHTML = avatarHTML(c); s.style.borderColor = "#ffd94a"; }
+    slots.appendChild(s);
+  }
+}
+function toggleTeam(id){
+  const i = S.team.indexOf(id);
+  if (i >= 0) S.team.splice(i, 1);
+  else { if (S.team.length >= 3) S.team.shift(); S.team.push(id); }
+  save(); renderRoster();
+  beep(520, .06, "square", .08);
+}
+function autoTeam(){
+  if (S.team.length === 3) return;
+  const owned = POOL.filter(c => S.own[c.id]?.n)
+    .sort((a,b) => (b.atk+b.hp/10) - (a.atk+a.hp/10));
+  S.team = owned.slice(0,3).map(c => c.id);
+  save();
+}
+
+/* ================= 战斗 ================= */
+let battleToken = 0;
+function mkFighter(c, side){
+  const st = side === "p" ? starOf(c.id) : 1;
+  const mul = side === "p" ? statMul(st) : 1;
+  return {
+    base: c, side, star: st,
+    name: c.name, img: c.img, fx: c.fx, fy: c.fy, z: c.z, asp: c.asp, skill: c.skill,
+    maxhp: Math.round(c.hp * mul), hp: Math.round(c.hp * mul),
+    atk: Math.round(c.atk * mul), spd: c.spd,
+    stun: false, atkDown: 0, dodgeUp: false,
+  };
+}
+function log(html){
+  const box = $("#battleLog");
+  box.insertAdjacentHTML("beforeend", `<div>${html}</div>`);
+  box.scrollTop = box.scrollHeight;
+}
+function banner(text, color){
+  const b = $("#banner");
+  b.textContent = text; b.style.borderColor = color || "#ffd94a"; b.style.color = color || "#ffd94a";
+  b.classList.add("show");
+  setTimeout(() => b.classList.remove("show"), 850);
+}
+function dmgPop(side, text, color){
+  const f = $(side === "p" ? "#fP" : "#fE");
+  const d = document.createElement("div");
+  d.className = "dmg-pop"; d.textContent = text;
+  d.style.cssText += `left:${20 + Math.random()*40}%; top:20%; color:${color}`;
+  f.appendChild(d); setTimeout(() => d.remove(), 1000);
+}
+function renderFighter(f){
+  const el = $(f.side === "p" ? "#fP" : "#fE");
+  el.className = `fighter ${f.side}`;
+  el.innerHTML = `
+    <div class="f-avatar">${avatarHTML(f)}</div>
+    <div class="fname">${f.name}</div>
+    <div class="hpbar"><div class="fill" style="width:100%"></div><div class="hptext"></div></div>
+    <div class="remains"></div>`;
+  updateHP(f);
+}
+function updateHP(f){
+  const el = $(f.side === "p" ? "#fP" : "#fE");
+  const pct = Math.max(0, f.hp / f.maxhp * 100);
+  el.querySelector(".fill").style.width = pct + "%";
+  el.querySelector(".hptext").textContent = `${Math.max(0,f.hp)} / ${f.maxhp}`;
+  el.querySelector(".remains").textContent = f.dead ? "💀 已倒下" : "";
+}
+function anim(side, cls){
+  const el = $(side === "p" ? "#fP" : "#fE");
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+}
+function shakeScreen(){
+  const w = $("#shakeWrap");
+  w.classList.remove("battle-shake"); void w.offsetWidth; w.classList.add("battle-shake");
+}
+
+const HIT_QUIPS = ["一记闷棍","一个脑瓜崩","贴脸开大","顺手就是一下","上来就是干"];
+const DODGE_QUIPS = ["侧身一躲：就这？","看穿了一切","闪得潇洒至极","根本懒得理"];
+async function attack(a, d, token){
+  if (token !== battleToken) return false;
+  if (a.stun) {
+    a.stun = false;
+    log(`😵 <b>${a.name}</b> 笑得直不起腰，跳过一回合！`);
+    banner(`${a.name} 被笑倒了`, "#7de08a");
+    await sleep(750);
+    return true;
+  }
+  const weakened = a.atkDown > 0;
+  if (weakened) a.atkDown--;
+
+  const useSkill = Math.random() < .32;
+  let mult = 1, isCrit = Math.random() < .15, stunHit = false, heal = 0, dodge = false;
+  const sk = a.skill;
+  if (useSkill) {
+    mult = sk.mult;
+    if (sk.type === "stun" && Math.random() < sk.stunCh) stunHit = true;
+    if (sk.type === "heal") heal = .15;
+    if (sk.type === "crit" && Math.random() < .5) isCrit = true;
+    banner(`${sk.name}！`, sk.type === "poop" ? "#b07d2a" : "#ffd94a");
+    jingle([[523,0],[784,.08]], .1);
+  }
+  if (d.dodgeUp && Math.random() < .4) dodge = true;
+  else if (Math.random() < .06) dodge = true;
+
+  let dmg = Math.round(a.atk * mult * (.9 + Math.random()*.2) * (weakened ? .75 : 1));
+  if (isCrit && sk.type !== "crit") dmg = Math.round(dmg * 1.6);
+  if (isCrit && sk.type === "crit") dmg = Math.round(dmg * 1.8);
+  if (sk.type === "poop") dmg = Math.round(dmg * 1.1); // 无视防御加成
+
+  anim(a.side, "lunge");
+  await sleep(200);
+  if (token !== battleToken) return false;
+
+  if (dodge) {
+    log(`💨 <b>${d.name}</b> ${DODGE_QUIPS[Math.floor(Math.random()*DODGE_QUIPS.length)]}`);
+    dmgPop(d.side, "MISS", "#9a8fd0");
+  } else {
+    d.hp -= dmg;
+    if (sk.type === "heal") { a.hp = Math.min(a.maxhp, a.hp + Math.round(a.maxhp*heal)); updateHP(a); }
+    updateHP(d);
+    anim(d.side, "hurt");
+    isCrit && shakeScreen();
+    dmgPop(d.side, `-${dmg}`, isCrit ? "#ff9a3d" : "#fff");
+    if (isCrit) beep(200, .18, "sawtooth", .2); else beep(320, .1, "square", .12);
+    if (useSkill) {
+      log(`<span class="skill">✨ ${a.name} 发动「${sk.name}」</span>${isCrit ? '<span class="crit">会心一击！</span>' : ""}对 ${d.name} 造成 <b>${dmg}</b> 点伤害`);
+      if (stunHit) { d.stun = true; log(`😵 ${d.name} 被整不会了，下回合无法行动！`); }
+      if (sk.type === "dodge") { a.dodgeUp = true; setTimeout(() => a.dodgeUp = false, 1400); }
+      if (sk.type === "atkDown") d.atkDown = 2;
+    } else {
+      log(`${a.name} ${HIT_QUIPS[Math.floor(Math.random()*HIT_QUIPS.length)]}，${d.name} 掉了 <b>${dmg}</b> 点血${isCrit ? '<span class="crit">（暴击）</span>' : ""}`);
+    }
+  }
+  if (d.hp <= 0) { d.dead = true; updateHP(d); }
+  await sleep(460);
+  return true;
+}
+
+async function startBattle(){
+  ac();
+  if (!S.team || S.team.length === 0) { alert("先去「图鉴编队」选 3 张卡！"); return; }
+  const token = ++battleToken;
+  const pTeam = S.team.map(id => mkFighter(cardById(id), "p"));
+  const eTeam = genEnemyTeam(S.stage).map(c => mkFighter(c, "e"));
+  $("#battleTitle").textContent = `🗡️ 第 ${S.stage} 关 · 战斗中`;
+  $("#battleLog").innerHTML = "";
+  $("#resultOverlay").classList.remove("active");
+  show("#battle");
+  $("#fP").innerHTML = ""; $("#fE").innerHTML = "";
+
+  let pi = 0, ei = 0;
+  let pF = pTeam[0], eF = eTeam[0];
+  renderFighter(pF); renderFighter(eF);
+  pF.dead = eF.dead = false;
+  $("#fP").classList.add("entering"); $("#fE").classList.add("entering");
+  log(`<span class="sys">📢 第 ${S.stage} 关开打！车轮战，倒下一个补一个！</span>`);
+  await sleep(700);
+
+  while (token === battleToken) {
+    const first = pF.spd >= eF.spd ? "p" : "e";
+    const order = first === "p" ? [[pF,eF],[eF,pF]] : [[eF,pF],[pF,eF]];
+    for (const [a,d] of order) {
+      if (a.dead || d.dead || token !== battleToken) continue;
+      await attack(a, d, token);
+    }
+    if (token !== battleToken) return;
+    if (pF.dead || eF.dead) {
+      const loserSide = pF.dead ? "p" : "e";
+      const loser = pF.dead ? pF : eF, winner = pF.dead ? eF : pF;
+      log(`<span class="sys">💀 ${loser.name} 倒下了！${winner.name} 表示毫无压力</span>`);
+      await sleep(600);
+      if (loserSide === "p") {
+        pi++;
+        if (pi >= pTeam.length) return endBattle(false, pTeam, eTeam, token);
+        pF = pTeam[pi]; pF.dead = false;
+        renderFighter(pF); $("#fP").classList.add("entering");
+        log(`<span class="sys">🚪 我方派出 ${pF.name}！</span>`);
+      } else {
+        ei++;
+        if (ei >= eTeam.length) return endBattle(true, pTeam, eTeam, token);
+        eF = eTeam[ei]; eF.dead = false;
+        renderFighter(eF); $("#fE").classList.add("entering");
+        log(`<span class="sys">🚪 对面派出 ${eF.name}！</span>`);
+      }
+      await sleep(600);
+    }
+  }
+}
+
+function endBattle(win, pTeam, eTeam, token){
+  if (token !== battleToken) return;
+  battleToken++;
+  const reward = win ? 100 + S.stage * 40 : 30;
+  if (win) { S.stage++; }
+  S.coins += reward; save();
+  $("#resultTitle").textContent = win ? "胜 利 !" : "败 北…";
+  $("#resultTitle").className = win ? "win" : "lose";
+  $("#resultDetail").innerHTML = win
+    ? `拿下第 <b>${S.stage-1}</b> 关！<br>获得 <b>🪙${reward}</b>，下一关对手更强<br><span style="font-size:13px;color:#9a8fd0">金币可以去抽卡变强</span>`
+    : `差一点点！安慰奖 <b>🪙${reward}</b><br><span style="font-size:13px;color:#9a8fd0">先去抽卡升星再来复仇</span>`;
+  $("#resultOverlay").classList.add("active");
+  win ? jingle([[523,0],[659,.12],[784,.24],[1047,.36]], .14)
+      : jingle([[400,0],[300,.15],[200,.3]], .18, "sawtooth");
+  renderHome();
+}
+
+/* ================= 事件绑定 ================= */
+$("#gachaBtn").addEventListener("click", () => { ac(); updateCoins(); show("#gacha"); });
+$("#rosterBtn").addEventListener("click", () => { ac(); renderRoster(); show("#roster"); });
+$("#backHome1").addEventListener("click", () => { renderHome(); show("#home"); });
+$("#backHome2").addEventListener("click", () => { renderHome(); show("#home"); });
+$("#backHome3").addEventListener("click", () => { $("#resultOverlay").classList.remove("active"); renderHome(); show("#home"); });
+$("#pull1").addEventListener("click", () => doPull(1));
+$("#pull10").addEventListener("click", () => doPull(10));
+$("#fightBtn").addEventListener("click", () => { autoTeam(); startBattle(); });
+$("#againBtn").addEventListener("click", () => { $("#resultOverlay").classList.remove("active"); startBattle(); });
+
+/* ================= 启动 ================= */
+autoTeam();
+renderHome();
+</script>
+</body>
+</html>
