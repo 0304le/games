@@ -23,6 +23,11 @@
     background:linear-gradient(90deg,#ffd94a,#ff9a3d); -webkit-background-clip:text; background-clip:text; color:transparent; }
   #coinBox { background:#ffffff14; border:1px solid #ffffff2e; border-radius:20px;
     padding:5px 14px; font-size:15px; font-weight:bold; color:#ffd94a; }
+  #cheatBox { width:32px; height:32px; border-radius:50%; background:#ffffff10;
+    border:1px solid #ffffff2e; display:flex; align-items:center; justify-content:center;
+    font-size:15px; cursor:pointer; opacity:.45; transition:opacity .2s, transform .1s; }
+  #cheatBox:hover { opacity:1; }
+  #cheatBox:active { transform:scale(.9); }
 
   .screen { flex:1; display:none; flex-direction:column; overflow:hidden; padding:0 16px 16px; }
   .screen.active { display:flex; }
@@ -178,13 +183,84 @@
 
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-thumb { background:#ffffff33; border-radius:4px; }
+
+  /* ===== 新增：特效层 ===== */
+  #particles { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  #particles span { position:absolute; bottom:-40px; opacity:.4; animation:floatUp linear infinite; filter:drop-shadow(0 0 6px #fff2); }
+  @keyframes floatUp { 0%{ transform:translateY(0) rotate(0); opacity:0;} 12%{opacity:.5;} 88%{opacity:.4;} 100%{ transform:translateY(-110vh) rotate(360deg); opacity:0;} }
+
+  #skillFlash { position:fixed; inset:0; z-index:30; pointer-events:none; opacity:0; transition:opacity .12s; mix-blend-mode:screen; }
+  #skillFlash.on { opacity:.65; }
+
+  #critFlash { position:fixed; inset:0; z-index:31; pointer-events:none; opacity:0;
+    background:radial-gradient(circle, #ff5a4a66, transparent 60%); transition:opacity .1s; }
+  #critFlash.on { opacity:1; animation:critf .25s; }
+  @keyframes critf { 0%{opacity:0;} 40%{opacity:1;} 100%{opacity:0;} }
+
+  .confetti { position:fixed; top:-24px; font-size:20px; z-index:55; pointer-events:none;
+    animation:confettiFall linear forwards; }
+  @keyframes confettiFall { to { transform:translateY(108vh) rotate(720deg); } }
+
+  /* ===== BOSS ===== */
+  .fighter.boss .f-avatar { border-color:#ffd94a; animation:bossGlow 1.1s infinite alternate; }
+  @keyframes bossGlow { from{ box-shadow:0 0 0 3px #ffd94a55, 0 0 16px #ff9a3d77;}
+                         to{ box-shadow:0 0 0 7px #ffd94acc, 0 0 38px #ff9a3dee;} }
+  .fighter.boss .fname::before { content:"👑 "; }
+  .fighter.boss .f-avatar::after { content:"BOSS"; position:absolute; bottom:4px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:bold; color:#5b3310; background:#ffd94a; padding:1px 7px; border-radius:6px; z-index:3; }
+
+  /* ===== 手动操作栏 ===== */
+  #battleTop { display:flex; align-items:center; justify-content:space-between; padding:4px 2px; }
+  #manualToggle { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid #ffffff3a;
+    background:#ffffff12; color:#cfc6f2; cursor:pointer; }
+  #manualToggle.on { background:linear-gradient(90deg,#ffd94a,#ff9a3d); color:#5b3310; border:none; font-weight:bold; }
+  #actionBar { display:none; gap:12px; justify-content:center; padding:6px 0; }
+  #actionBar.show { display:flex; }
+  .actBtn { flex:1; max-width:200px; font-size:16px; font-weight:bold; color:#fff; border:none; border-radius:12px;
+    padding:11px; cursor:pointer; font-family:inherit; transition:transform .08s; }
+  .actBtn:active { transform:scale(.95); }
+  .actBtn.normal { background:linear-gradient(160deg,#4aa3ff,#2f6df0); box-shadow:0 3px 10px #2f6df055; }
+  .actBtn.skill { background:linear-gradient(160deg,#ff9a3d,#f4762a); box-shadow:0 3px 10px #ff9a3d55; }
+  .actBtn:disabled { opacity:.35; filter:grayscale(.7); cursor:not-allowed; }
+  .actBtn .cd { font-size:11px; opacity:.85; font-weight:normal; }
+
+  /* SSR 图鉴卡呼吸光 */
+  .roster-card.r-SSR { animation:ssrPulse 2s infinite alternate; }
+  @keyframes ssrPulse { from{ box-shadow:0 0 8px #ffd94a33;} to{ box-shadow:0 0 22px #ffd94a88;} }
+
+  /* 伤害数字加重 */
+  .dmg-pop.crit { font-size:34px; color:#ff5a4a; animation:critpop 1s forwards; }
+  @keyframes critpop { 0%{ transform:scale(.4) rotate(-15deg); opacity:0;}
+    25%{ transform:scale(1.4) rotate(8deg); opacity:1;}
+    100%{ transform:translateY(-60px) scale(1) rotate(0); opacity:0;} }
+
+  .endless-badge { display:inline-block; background:#9b6bff33; border:1px solid #9b6bff66; color:#c9b8ff;
+    font-size:11px; padding:2px 8px; border-radius:8px; margin-top:4px; }
+
+  /* ===== 模式选择面板 ===== */
+  #modeOverlay .panel-title { text-align:center; font-size:22px; }
+  .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+  .mode-card { background:linear-gradient(160deg,#2a2350,#1a1535); border:1px solid #ffffff22;
+    border-radius:14px; padding:14px; cursor:pointer; transition:transform .12s, border-color .12s, box-shadow .12s; }
+  .mode-card:hover { transform:translateY(-3px); border-color:#ffd94a88; box-shadow:0 6px 18px #ffd94a22; }
+  .mode-card .mi { font-size:32px; }
+  .mode-card .mn { font-size:16px; font-weight:bold; margin:6px 0 4px; }
+  .mode-card .md { font-size:12px; color:#9a8fd0; line-height:1.5; }
+  #draftGrid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  #draftGrid .card.selected { box-shadow:0 0 0 3px #ffd94a, 0 0 16px #ffd94a88; transform:scale(1.04); }
 </style>
 </head>
 <body>
+<div id="particles"></div>
+<div id="skillFlash"></div>
+<div id="critFlash"></div>
 <div id="app">
   <div id="topbar">
     <div id="logo">🔥 梗图大乱斗</div>
-    <div id="coinBox">🪙 <span id="coins">0</span></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div id="cheatBox" title="一键增强">⚡</div>
+      <div id="coinBox">🪙 <span id="coins">0</span></div>
+    </div>
   </div>
 
   <!-- 主城 -->
@@ -194,12 +270,17 @@
       <div class="stage-title" id="stageTitle">第 1 关</div>
       <div class="stage-sub" id="stageSub">对手阵容预览</div>
       <div class="enemy-mini" id="enemyMini"></div>
+      <div class="endless-badge">♾️ 无尽最高：<span id="endlessBest">0</span> 关</div>
     </div>
     <div class="menu-btns">
       <button class="btn green" id="fightBtn">🗡️ 出战</button>
+      <button class="btn blue" id="modeBtn">🎮 玩法模式</button>
     </div>
     <div class="menu-btns">
+      <button class="btn blue" id="endlessBtn">♾️ 无尽模式</button>
       <button class="btn gold" id="gachaBtn">🎰 抽卡</button>
+    </div>
+    <div class="menu-btns">
       <button class="btn purple" id="rosterBtn">👥 图鉴编队</button>
     </div>
   </div>
@@ -229,13 +310,20 @@
 
   <!-- 战斗 -->
   <div class="screen" id="battle">
-    <div class="panel-title" id="battleTitle">🗡️ 战斗中</div>
+    <div id="battleTop">
+      <div class="panel-title" id="battleTitle" style="margin:0">🗡️ 战斗中</div>
+      <button id="manualToggle">🤖 自动</button>
+    </div>
     <div id="shakeWrap" style="display:flex;flex-direction:column;flex:1;gap:10px;overflow:hidden;">
       <div id="arena">
         <div class="fighter p" id="fP"></div>
         <div class="vs">VS</div>
         <div class="fighter e" id="fE"></div>
         <div id="banner"></div>
+      </div>
+      <div id="actionBar">
+        <button class="actBtn normal" id="normalBtn">普攻</button>
+        <button class="actBtn skill" id="skillBtn">技能<br><span class="cd"></span></button>
       </div>
       <div id="battleLog"></div>
     </div>
@@ -247,6 +335,48 @@
     <div id="resultDetail"></div>
     <button class="btn green" id="againBtn">再 战</button>
     <button class="btn gray" id="backHome3">返回主城</button>
+  </div>
+
+  <!-- 玩法模式选择 -->
+  <div class="overlay" id="modeOverlay">
+    <div class="panel-title">🎮 选择玩法</div>
+    <div class="mode-grid">
+      <div class="mode-card" data-mode="normal">
+        <div class="mi">🗡️</div><div class="mn">主线征战</div>
+        <div class="md">逐关挑战，越打越强<br>每 5 关一个 BOSS</div>
+      </div>
+      <div class="mode-card" data-mode="endless">
+        <div class="mi">♾️</div><div class="mn">无尽模式</div>
+        <div class="md">敌人无限变强<br>挑战历史最高关</div>
+      </div>
+      <div class="mode-card" data-mode="survival">
+        <div class="mi">🔥</div><div class="mn">大乱斗</div>
+        <div class="md">连续击败 6 个敌人<br>每击败一个回血 25%</div>
+      </div>
+      <div class="mode-card" data-mode="bossrush">
+        <div class="mi">👑</div><div class="mn">BOSS 连战</div>
+        <div class="md">连续挑战 3 个 BOSS<br>每击败一个回血 30%</div>
+      </div>
+      <div class="mode-card" data-mode="mirror">
+        <div class="mi">🪞</div><div class="mn">镜像战</div>
+        <div class="md">对战与你完全相同的阵容<br>考验阵容搭配</div>
+      </div>
+      <div class="mode-card" data-mode="draft">
+        <div class="mi">🎲</div><div class="mn">盲选对战</div>
+        <div class="md">从 8 张随机卡里选 3 张<br>没拥有的卡也能用</div>
+      </div>
+    </div>
+    <button class="btn gray" id="closeMode">返回</button>
+  </div>
+
+  <!-- 盲选面板 -->
+  <div class="overlay" id="draftOverlay">
+    <div class="panel-title">🎲 盲选 3 张卡出战</div>
+    <div id="draftGrid"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:12px;">
+      <button class="btn gray" id="draftCancel">取消</button>
+      <button class="btn gold" id="draftConfirm" disabled>确认出战 (0/3)</button>
+    </div>
   </div>
 </div>
 
@@ -277,6 +407,33 @@ const POOL = [
   { id:"bian",    img:"6ca61d49db0b92e7a58b9cb313c17fe9.png", fx:.435, fy:.242, z:195, asp:1.784,
     name:"大便超人", rarity:"SSR", atk:225, hp:1550, spd:115,
     skill:{ name:"息臭冲击波", desc:"2.5倍无视防御的神圣一击，25%熏晕对面", type:"poop", mult:2.5, stunCh:.25 } },
+  { id:"waitou",  img:"新卡牌/1d2b102bc2466598f7a0019b1d620d74.jpg", fx:.42, fy:.33, z:175, asp:1.357,
+    name:"歪头杀", rarity:"N",  atk:115, hp:1050, spd:105,
+    skill:{ name:"歪头闪避", desc:"1.3倍伤害并闪避大幅提升，对面打不着", type:"dodge", mult:1.3 } },
+  { id:"gaoleng", img:"新卡牌/2946d0d0899ce8d5a2290f2acbb7d12d.jpg", fx:.42, fy:.32, z:270, asp:1.779,
+    name:"高冷面具", rarity:"SR", atk:165, hp:1280, spd:115,
+    skill:{ name:"冰封凝视", desc:"1.7倍伤害，40%冻结对面一回合", type:"stun", mult:1.7, stunCh:.4 } },
+  { id:"hanxiao", img:"新卡牌/2e6279de97da345faa7c96867516d3bb.jpg", fx:.75, fy:.32, z:270, asp:1.334,
+    name:"憨笑弟", rarity:"N",  atk:105, hp:1150, spd:95,
+    skill:{ name:"憨笑回血", desc:"1.3倍伤害并笑回血15%", type:"heal", mult:1.3 } },
+  { id:"shekong", img:"新卡牌/3170c9c506981bfd4075d2871c1187b3.jpg", fx:.70, fy:.32, z:270, asp:1.777,
+    name:"社恐小子", rarity:"R",  atk:140, hp:1080, spd:120,
+    skill:{ name:"社恐闪现", desc:"1.4倍伤害并闪避提升，根本摸不到", type:"dodge", mult:1.4 } },
+  { id:"rexue",   img:"新卡牌/5212f0d0d305361d79bdf753eeebb84e.jpg", fx:.70, fy:.32, z:270, asp:1.334,
+    name:"热血笨蛋", rarity:"R",  atk:175, hp:980,  spd:135,
+    skill:{ name:"热血暴击", desc:"2.0倍伤害，极易暴击（莽夫专属）", type:"crit", mult:2.0 } },
+  { id:"yinxiao", img:"新卡牌/6cac59fb814f867dd9efc96ccb1bbe30.jpg", fx:.60, fy:.28, z:270, asp:1.777,
+    name:"操场双煞", rarity:"SR", atk:155, hp:1300, spd:100,
+    skill:{ name:"双煞瞪眼", desc:"1.5倍伤害，35%对面被瞪到无法行动", type:"stun", mult:1.5, stunCh:.35 } },
+  { id:"zhengu",  img:"新卡牌/be270177f79ceec9e5a3ded7c8413d4c.jpg", fx:.45, fy:.28, z:180, asp:1.241,
+    name:"整蛊之王", rarity:"SSR", atk:240, hp:1600, spd:120,
+    skill:{ name:"整蛊风暴", desc:"2.8倍无视防御的终极一击，30%对面笑到晕厥", type:"poop", mult:2.8, stunCh:.3 } },
+  { id:"zipai",   img:"新卡牌/e6d405342d6ce3b02f79805cc4334e5c.jpg", fx:.43, fy:.63, z:300, asp:1.551,
+    name:"不动明王", rarity:"R",  atk:135, hp:1300, spd:85,
+    skill:{ name:"明王瞪视", desc:"1.3倍伤害并威慑，对面攻击-30%", type:"atkDown", mult:1.3 } },
+  { id:"daizhi",  img:"新卡牌/e76e73658f3475125a62e26b5155c6ad.jpg", fx:.45, fy:.18, z:220, asp:1.777,
+    name:"呆滞哥", rarity:"N",  atk:110, hp:1180, spd:90,
+    skill:{ name:"呆滞凝视", desc:"1.2倍伤害并嘲讽，对面攻击-25%", type:"atkDown", mult:1.2 } },
 ];
 const RARITY_W = { N:55, R:30, SR:12, SSR:3 };
 const $ = s => document.querySelector(s);
@@ -284,7 +441,7 @@ const $ = s => document.querySelector(s);
 /* ================= 存档 ================= */
 let S;
 try { S = JSON.parse(localStorage.getItem("meme_rpg") || "null"); } catch(e) { S = null; }
-if (!S) S = { coins: 1200, stage: 1, own: { daxiao:{n:1}, tiaomei:{n:1}, yeshi:{n:1} }, team: [] };
+if (!S) S = { coins: 1200, stage: 1, endlessStage: 1, endlessBest: 0, own: { daxiao:{n:1}, tiaomei:{n:1}, yeshi:{n:1}, waitou:{n:1} }, team: [] };
 function save(){ localStorage.setItem("meme_rpg", JSON.stringify(S)); }
 function starOf(id){ return Math.min(5, S.own[id]?.n || 0) ; }
 function cardById(id){ return POOL.find(c => c.id === id); }
@@ -337,6 +494,12 @@ function updateCoins(){ $("#coins").textContent = S.coins; }
 
 /* ================= 主城 ================= */
 function genEnemyTeam(stage){
+  if (stage > 0 && stage % 5 === 0) {
+    const boss = cardById("bian");
+    const mul = 1 + (stage - 1) * .13;
+    return [{ ...boss, isBoss:true, name:"终极大便超人",
+      atk: Math.round(boss.atk*mul*1.9), hp: Math.round(boss.hp*mul*4.2) }];
+  }
   let pool = POOL.filter(c => stage <= 2 ? c.rarity === "N" || c.rarity === "R"
                     : stage <= 4 ? c.rarity !== "SSR" : true);
   if (stage >= 5 && Math.random() < Math.min(.5, .1 + stage * .04)) pool = POOL;
@@ -348,11 +511,12 @@ function genEnemyTeam(stage){
 }
 function renderHome(){
   updateCoins();
-  $("#stageTitle").textContent = `第 ${S.stage} 关`;
+  $("#endlessBest").textContent = S.endlessBest || 0;
+  $("#stageTitle").textContent = `第 ${S.stage} 关${S.stage % 5 === 0 ? " · 👑BOSS" : ""}`;
   $("#stageSub").textContent = `赢了 +${100 + S.stage*40} 金币，对手会越来越强`;
   const et = genEnemyTeam(S.stage);
   $("#enemyMini").innerHTML = et.map(c =>
-    `<div class="mini">${avatarHTML(c)}<div style="position:absolute;inset:0"></div></div>`).join("");
+    `<div class="mini" style="${c.isBoss?'box-shadow:0 0 12px #ffd94a88;border-color:#ffd94a':''}">${avatarHTML(c)}<div style="position:absolute;inset:0"></div></div>`).join("");
 }
 
 /* ================= 抽卡 ================= */
@@ -441,15 +605,15 @@ function autoTeam(){
 
 /* ================= 战斗 ================= */
 let battleToken = 0;
-function mkFighter(c, side){
-  const st = side === "p" ? starOf(c.id) : 1;
-  const mul = side === "p" ? statMul(st) : 1;
+function mkFighter(c, side, starOverride){
+  const st = starOverride !== undefined ? starOverride : (side === "p" ? starOf(c.id) : 1);
+  const mul = (starOverride !== undefined || side === "p") ? statMul(st) : 1;
   return {
-    base: c, side, star: st,
+    base: c, side, star: st, isBoss: !!c.isBoss,
     name: c.name, img: c.img, fx: c.fx, fy: c.fy, z: c.z, asp: c.asp, skill: c.skill,
     maxhp: Math.round(c.hp * mul), hp: Math.round(c.hp * mul),
     atk: Math.round(c.atk * mul), spd: c.spd,
-    stun: false, atkDown: 0, dodgeUp: false,
+    stun: false, atkDown: 0, dodgeUp: false, skillCd: 0, _bc: 0,
   };
 }
 function log(html){
@@ -463,16 +627,16 @@ function banner(text, color){
   b.classList.add("show");
   setTimeout(() => b.classList.remove("show"), 850);
 }
-function dmgPop(side, text, color){
+function dmgPop(side, text, color, isCrit){
   const f = $(side === "p" ? "#fP" : "#fE");
   const d = document.createElement("div");
-  d.className = "dmg-pop"; d.textContent = text;
+  d.className = "dmg-pop" + (isCrit ? " crit" : ""); d.textContent = text;
   d.style.cssText += `left:${20 + Math.random()*40}%; top:20%; color:${color}`;
   f.appendChild(d); setTimeout(() => d.remove(), 1000);
 }
 function renderFighter(f){
   const el = $(f.side === "p" ? "#fP" : "#fE");
-  el.className = `fighter ${f.side}`;
+  el.className = `fighter ${f.side} ${f.isBoss ? "boss" : ""}`;
   el.innerHTML = `
     <div class="f-avatar">${avatarHTML(f)}</div>
     <div class="fname">${f.name}</div>
@@ -498,6 +662,55 @@ function shakeScreen(){
 
 const HIT_QUIPS = ["一记闷棍","一个脑瓜崩","贴脸开大","顺手就是一下","上来就是干"];
 const DODGE_QUIPS = ["侧身一躲：就这？","看穿了一切","闪得潇洒至极","根本懒得理"];
+let manualMode = false;
+
+/* ===== 特效 ===== */
+let flashTimer = null;
+function flashSkill(color){
+  const f = $("#skillFlash");
+  f.style.background = `radial-gradient(circle at 50% 50%, ${color}66, ${color}00 70%)`;
+  f.classList.add("on");
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => f.classList.remove("on"), 140);
+}
+function critFlash(){
+  const c = $("#critFlash");
+  c.classList.remove("on"); void c.offsetWidth; c.classList.add("on");
+}
+function confetti(){
+  const emojis = ["🎉","✨","⭐","💩","🪙","🔥","🤣"];
+  for (let i = 0; i < 45; i++){
+    const c = document.createElement("div");
+    c.className = "confetti"; c.textContent = emojis[i % emojis.length];
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.animationDuration = (1.6 + Math.random() * 1.8) + "s";
+    c.style.animationDelay = (Math.random() * .5) + "s";
+    c.style.fontSize = (16 + Math.random() * 14) + "px";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3800);
+  }
+}
+
+/* ===== 手动操作 ===== */
+function showActionBar(a){
+  const bar = $("#actionBar");
+  bar.classList.add("show");
+  const sb = $("#skillBtn");
+  const ready = a.skillCd === 0;
+  sb.disabled = !ready;
+  sb.innerHTML = ready ? `技能<br><span class="cd">${a.skill.name}</span>`
+                        : `技能<br><span class="cd">冷却 ${a.skillCd} 回合</span>`;
+}
+function hideActionBar(){ $("#actionBar").classList.remove("show"); }
+function waitForPlayerAction(a, token){
+  return new Promise(res => {
+    showActionBar(a);
+    const done = (act) => { hideActionBar(); res(act); };
+    $("#normalBtn").onclick = () => done("normal");
+    $("#skillBtn").onclick = () => { if (a.skillCd > 0) return; done("skill"); };
+  });
+}
+
 async function attack(a, d, token){
   if (token !== battleToken) return false;
   if (a.stun) {
@@ -509,17 +722,40 @@ async function attack(a, d, token){
   }
   const weakened = a.atkDown > 0;
   if (weakened) a.atkDown--;
+  if (a.skillCd > 0) a.skillCd--;
 
-  const useSkill = Math.random() < .32;
+  let useSkill = false;
+  if (manualMode && a.side === "p") {
+    const act = await waitForPlayerAction(a, token);
+    if (token !== battleToken) return false;
+    useSkill = act === "skill" && a.skillCd === 0;
+  } else {
+    useSkill = Math.random() < .32;
+  }
+
   let mult = 1, isCrit = Math.random() < .15, stunHit = false, heal = 0, dodge = false;
   const sk = a.skill;
-  if (useSkill) {
+
+  // BOSS 暴怒：每 3 次攻击释放 3 倍重击
+  if (a.isBoss) {
+    a._bc = (a._bc || 0) + 1;
+    if (a._bc % 3 === 0) {
+      isCrit = true; mult = 3;
+      banner("👑 暴怒重击！", "#ff5a4a");
+      flashSkill("#ff5a4a"); critFlash(); shakeScreen();
+      beep(90, .45, "sawtooth", .28);
+    }
+  }
+
+  if (useSkill && !a.isBoss) {
     mult = sk.mult;
     if (sk.type === "stun" && Math.random() < sk.stunCh) stunHit = true;
     if (sk.type === "heal") heal = .15;
     if (sk.type === "crit" && Math.random() < .5) isCrit = true;
     banner(`${sk.name}！`, sk.type === "poop" ? "#b07d2a" : "#ffd94a");
+    flashSkill(sk.type === "poop" ? "#8a5a20" : (sk.type === "crit" ? "#ff5a4a" : "#ffd94a"));
     jingle([[523,0],[784,.08]], .1);
+    if (a.side === "p") a.skillCd = 3;
   }
   if (d.dodgeUp && Math.random() < .4) dodge = true;
   else if (Math.random() < .06) dodge = true;
@@ -527,7 +763,7 @@ async function attack(a, d, token){
   let dmg = Math.round(a.atk * mult * (.9 + Math.random()*.2) * (weakened ? .75 : 1));
   if (isCrit && sk.type !== "crit") dmg = Math.round(dmg * 1.6);
   if (isCrit && sk.type === "crit") dmg = Math.round(dmg * 1.8);
-  if (sk.type === "poop") dmg = Math.round(dmg * 1.1); // 无视防御加成
+  if (sk.type === "poop") dmg = Math.round(dmg * 1.1);
 
   anim(a.side, "lunge");
   await sleep(200);
@@ -535,15 +771,15 @@ async function attack(a, d, token){
 
   if (dodge) {
     log(`💨 <b>${d.name}</b> ${DODGE_QUIPS[Math.floor(Math.random()*DODGE_QUIPS.length)]}`);
-    dmgPop(d.side, "MISS", "#9a8fd0");
+    dmgPop(d.side, "MISS", "#9a8fd0", false);
   } else {
     d.hp -= dmg;
-    if (sk.type === "heal") { a.hp = Math.min(a.maxhp, a.hp + Math.round(a.maxhp*heal)); updateHP(a); }
+    if (sk.type === "heal" && useSkill) { a.hp = Math.min(a.maxhp, a.hp + Math.round(a.maxhp*heal)); updateHP(a); }
     updateHP(d);
     anim(d.side, "hurt");
-    isCrit && shakeScreen();
-    dmgPop(d.side, `-${dmg}`, isCrit ? "#ff9a3d" : "#fff");
-    if (isCrit) beep(200, .18, "sawtooth", .2); else beep(320, .1, "square", .12);
+    if (isCrit) { shakeScreen(); critFlash(); }
+    dmgPop(d.side, `-${dmg}`, isCrit ? "#ff5a4a" : "#fff", isCrit);
+    if (isCrit) beep(180, .2, "sawtooth", .22); else beep(320, .1, "square", .12);
     if (useSkill) {
       log(`<span class="skill">✨ ${a.name} 发动「${sk.name}」</span>${isCrit ? '<span class="crit">会心一击！</span>' : ""}对 ${d.name} 造成 <b>${dmg}</b> 点伤害`);
       if (stunHit) { d.stun = true; log(`😵 ${d.name} 被整不会了，下回合无法行动！`); }
@@ -558,13 +794,68 @@ async function attack(a, d, token){
   return true;
 }
 
+let BCFG = { mode:"normal", picks:null }; // normal|endless|survival|bossrush|mirror|draft
+let battleCur = null;
+
 async function startBattle(){
   ac();
-  if (!S.team || S.team.length === 0) { alert("先去「图鉴编队」选 3 张卡！"); return; }
   const token = ++battleToken;
-  const pTeam = S.team.map(id => mkFighter(cardById(id), "p"));
-  const eTeam = genEnemyTeam(S.stage).map(c => mkFighter(c, "e"));
-  $("#battleTitle").textContent = `🗡️ 第 ${S.stage} 关 · 战斗中`;
+  const m = BCFG.mode;
+
+  // 玩家队伍
+  let pTeam;
+  if (m === "draft") {
+    if (!BCFG.picks || BCFG.picks.length !== 3) { alert("请先选 3 张卡！"); return; }
+    pTeam = BCFG.picks.map(id => {
+      const c = cardById(id);
+      return mkFighter(c, "p", S.own[id] ? starOf(id) : 1);
+    });
+  } else {
+    if (!S.team || S.team.length === 0) { alert("先去「图鉴编队」选 3 张卡！"); return; }
+    pTeam = S.team.map(id => mkFighter(cardById(id), "p"));
+  }
+
+  // 敌方队伍 & 标题 & 回合间回血
+  let eTeam = [], title = "", healBetween = 0;
+  const stage = S.stage;
+  const mul = 1 + (stage - 1) * .13;
+
+  if (m === "endless") {
+    const es = S.endlessStage;
+    eTeam = genEnemyTeam(es).map(c => mkFighter(c, "e"));
+    title = `♾️ 无尽 第 ${es} 关`;
+  } else if (m === "survival") {
+    for (let i = 0; i < 6; i++) {
+      const c = POOL[Math.floor(Math.random() * POOL.length)];
+      const mm = mul * (1 + i * 0.08);
+      eTeam.push(mkFighter({ ...c, atk: Math.round(c.atk * mm), hp: Math.round(c.hp * mm) }, "e"));
+    }
+    title = "🔥 大乱斗 1/6";
+    healBetween = 0.25;
+  } else if (m === "bossrush") {
+    for (let i = 0; i < 3; i++) {
+      const c = cardById("bian");
+      const mm = mul * (1 + i * 0.4);
+      eTeam.push(mkFighter({ ...c, isBoss:true, name:`终极大便超人 Lv.${i+1}`,
+        atk: Math.round(c.atk * mm * 1.9), hp: Math.round(c.hp * mm * 4.2) }, "e"));
+    }
+    title = "👑 BOSS连战 1/3";
+    healBetween = 0.30;
+  } else if (m === "mirror") {
+    eTeam = S.team.map(id => mkFighter(cardById(id), "e", starOf(id)));
+    title = "🪞 镜像战";
+  } else {
+    const isBoss = stage > 0 && stage % 5 === 0;
+    eTeam = genEnemyTeam(stage).map(c => mkFighter(c, "e"));
+    title = `🗡️ 第 ${stage} 关${isBoss ? " · 👑BOSS" : ""}`;
+  }
+
+  battleCur = { mode:m, stage, kills:0, total:eTeam.length, healBetween };
+
+  $("#battleTitle").textContent = title;
+  $("#manualToggle").textContent = manualMode ? "👆 手动" : "🤖 自动";
+  $("#manualToggle").classList.toggle("on", manualMode);
+  hideActionBar();
   $("#battleLog").innerHTML = "";
   $("#resultOverlay").classList.remove("active");
   show("#battle");
@@ -575,7 +866,13 @@ async function startBattle(){
   renderFighter(pF); renderFighter(eF);
   pF.dead = eF.dead = false;
   $("#fP").classList.add("entering"); $("#fE").classList.add("entering");
-  log(`<span class="sys">📢 第 ${S.stage} 关开打！车轮战，倒下一个补一个！</span>`);
+  const intro = m === "survival" ? "连打 6 个！击败一个回血 25%，全军覆没即结束"
+              : m === "bossrush" ? "连战 3 个 BOSS！击败一个回血 30%"
+              : m === "mirror" ? "对面是你的镜像阵容，公平对决"
+              : m === "draft" ? "盲选阵容出战！"
+              : m === "endless" ? "无尽挑战，越打越强"
+              : `第 ${stage} 关开打！车轮战`;
+  log(`<span class="sys">📢 ${intro}</span>`);
   await sleep(700);
 
   while (token === battleToken) {
@@ -589,7 +886,7 @@ async function startBattle(){
     if (pF.dead || eF.dead) {
       const loserSide = pF.dead ? "p" : "e";
       const loser = pF.dead ? pF : eF, winner = pF.dead ? eF : pF;
-      log(`<span class="sys">💀 ${loser.name} 倒下了！${winner.name} 表示毫无压力</span>`);
+      log(`<span class="sys">💀 ${loser.name} 倒下了！</span>`);
       await sleep(600);
       if (loserSide === "p") {
         pi++;
@@ -598,11 +895,19 @@ async function startBattle(){
         renderFighter(pF); $("#fP").classList.add("entering");
         log(`<span class="sys">🚪 我方派出 ${pF.name}！</span>`);
       } else {
-        ei++;
+        ei++; battleCur.kills++;
+        if (battleCur.healBetween > 0 && pF && !pF.dead) {
+          const heal = Math.round(pF.maxhp * battleCur.healBetween);
+          pF.hp = Math.min(pF.maxhp, pF.hp + heal);
+          updateHP(pF);
+          log(`<span class="sys">💚 ${pF.name} 恢复了 ${heal} 点血</span>`);
+        }
         if (ei >= eTeam.length) return endBattle(true, pTeam, eTeam, token);
         eF = eTeam[ei]; eF.dead = false;
         renderFighter(eF); $("#fE").classList.add("entering");
-        log(`<span class="sys">🚪 对面派出 ${eF.name}！</span>`);
+        if (battleCur.mode === "survival") $("#battleTitle").textContent = `🔥 大乱斗 ${Math.min(ei+1,6)}/6`;
+        else if (battleCur.mode === "bossrush") $("#battleTitle").textContent = `👑 BOSS连战 ${Math.min(ei+1,3)}/3`;
+        log(`<span class="sys">🚪 下一个对手：${eF.name}！</span>`);
       }
       await sleep(600);
     }
@@ -612,17 +917,54 @@ async function startBattle(){
 function endBattle(win, pTeam, eTeam, token){
   if (token !== battleToken) return;
   battleToken++;
-  const reward = win ? 100 + S.stage * 40 : 30;
-  if (win) { S.stage++; }
+  hideActionBar();
+  const m = battleCur.mode;
+  const kills = battleCur.kills;
+  let reward = 0;
+  if (m === "endless") {
+    const stage = S.endlessStage;
+    reward = win ? stage * 60 : 30;
+    if (win) { S.endlessStage++; if (stage > (S.endlessBest || 0)) S.endlessBest = stage; }
+  } else if (m === "survival") {
+    reward = win ? kills * 80 : Math.max(30, kills * 60);
+  } else if (m === "bossrush") {
+    reward = win ? 500 + kills * 250 : Math.max(100, kills * 200);
+  } else if (m === "mirror") {
+    reward = win ? 400 : 100;
+  } else if (m === "draft") {
+    reward = win ? 300 : 100;
+  } else {
+    const stage = S.stage;
+    reward = win ? 100 + stage * 40 : 30;
+    if (win) S.stage++;
+  }
   S.coins += reward; save();
+
   $("#resultTitle").textContent = win ? "胜 利 !" : "败 北…";
   $("#resultTitle").className = win ? "win" : "lose";
-  $("#resultDetail").innerHTML = win
-    ? `拿下第 <b>${S.stage-1}</b> 关！<br>获得 <b>🪙${reward}</b>，下一关对手更强<br><span style="font-size:13px;color:#9a8fd0">金币可以去抽卡变强</span>`
-    : `差一点点！安慰奖 <b>🪙${reward}</b><br><span style="font-size:13px;color:#9a8fd0">先去抽卡升星再来复仇</span>`;
+  let detail = "";
+  if (m === "endless") {
+    detail = win
+      ? `无尽 拿下第 <b>${S.endlessStage - 1}</b> 关！<br>历史最高 <b>${S.endlessBest}</b> 关<br>🪙${reward}`
+      : `无尽止步第 <b>${S.endlessStage}</b> 关<br>历史最高 <b>${S.endlessBest}</b> 关<br>🪙${reward}`;
+  } else if (m === "survival") {
+    detail = `击败 <b>${kills}</b>/6 个敌人<br>获得 <b>🪙${reward}</b>`;
+  } else if (m === "bossrush") {
+    detail = `击败 <b>${kills}</b>/3 个 BOSS<br>获得 <b>🪙${reward}</b>`;
+  } else if (m === "mirror") {
+    detail = win ? `镜像战获胜！<br>🪙${reward}` : `被自己打败了…<br>🪙${reward}`;
+  } else if (m === "draft") {
+    detail = win ? `盲选获胜！<br>🪙${reward}` : `盲选惜败<br>🪙${reward}`;
+  } else {
+    const stage = win ? S.stage - 1 : S.stage;
+    detail = win
+      ? `拿下第 <b>${stage}</b> 关！🪙${reward}${S.stage % 5 === 0 ? '<br><span style="color:#ffd94a">⚠️ 下一关 BOSS 战！</span>' : ''}`
+      : `差一点点！🪙${reward}`;
+  }
+  $("#resultDetail").innerHTML = detail;
   $("#resultOverlay").classList.add("active");
-  win ? jingle([[523,0],[659,.12],[784,.24],[1047,.36]], .14)
-      : jingle([[400,0],[300,.15],[200,.3]], .18, "sawtooth");
+  if (win) { confetti(); jingle([[523,0],[659,.12],[784,.24],[1047,.36]], .14); }
+  else jingle([[400,0],[300,.15],[200,.3]], .18, "sawtooth");
   renderHome();
 }
 
@@ -634,10 +976,106 @@ $("#backHome2").addEventListener("click", () => { renderHome(); show("#home"); }
 $("#backHome3").addEventListener("click", () => { $("#resultOverlay").classList.remove("active"); renderHome(); show("#home"); });
 $("#pull1").addEventListener("click", () => doPull(1));
 $("#pull10").addEventListener("click", () => doPull(10));
-$("#fightBtn").addEventListener("click", () => { autoTeam(); startBattle(); });
-$("#againBtn").addEventListener("click", () => { $("#resultOverlay").classList.remove("active"); startBattle(); });
+$("#fightBtn").addEventListener("click", () => { BCFG.mode = "normal"; autoTeam(); startBattle(); });
+$("#endlessBtn").addEventListener("click", () => { BCFG.mode = "endless"; autoTeam(); startBattle(); });
+$("#againBtn").addEventListener("click", () => {
+  $("#resultOverlay").classList.remove("active");
+  if (BCFG.mode === "draft") startDraft(); else startBattle();
+});
+$("#manualToggle").addEventListener("click", () => {
+  manualMode = !manualMode;
+  $("#manualToggle").textContent = manualMode ? "👆 手动" : "🤖 自动";
+  $("#manualToggle").classList.toggle("on", manualMode);
+  if (!manualMode) hideActionBar();
+});
+
+/* ===== 玩法模式 ===== */
+$("#modeBtn").addEventListener("click", () => { $("#modeOverlay").classList.add("active"); });
+$("#closeMode").addEventListener("click", () => { $("#modeOverlay").classList.remove("active"); });
+document.querySelectorAll(".mode-card").forEach(card => {
+  card.addEventListener("click", () => {
+    const mode = card.dataset.mode;
+    BCFG.mode = mode;
+    $("#modeOverlay").classList.remove("active");
+    if (mode === "draft") startDraft();
+    else { autoTeam(); startBattle(); }
+  });
+});
+
+/* ===== 盲选 ===== */
+let draftPool = [], draftPicks = [];
+function startDraft(){
+  draftPool = []; draftPicks = [];
+  const bag = [...POOL];
+  while (draftPool.length < 8 && bag.length) draftPool.push(bag.splice(Math.floor(Math.random() * bag.length), 1)[0]);
+  renderDraft();
+  $("#draftConfirm").disabled = true;
+  $("#draftConfirm").textContent = "确认出战 (0/3)";
+  $("#draftOverlay").classList.add("active");
+}
+function renderDraft(){
+  $("#draftGrid").innerHTML = draftPool.map(c => {
+    const sel = draftPicks.includes(c.id) ? "selected" : "";
+    const st = S.own[c.id] ? starOf(c.id) : 1;
+    const mul = statMul(st);
+    return `<div class="card r-${c.rarity} ${sel}" data-draft="${c.id}" style="cursor:pointer;">
+      <div class="chip c-${c.rarity}">${c.rarity}</div>
+      <div class="avatar">${avatarHTML(c)}</div>
+      <div class="cname">${c.name}</div>
+      <div class="cstars">${"⭐".repeat(st) || "☆"}</div>
+      <div class="cstats">⚔${Math.round(c.atk*mul)} 🛡${Math.round(c.hp*mul)} ⚡${c.spd}</div>
+    </div>`;
+  }).join("");
+  $("#draftGrid").querySelectorAll(".card").forEach(el => {
+    el.onclick = () => {
+      const id = el.dataset.draft;
+      const i = draftPicks.indexOf(id);
+      if (i >= 0) draftPicks.splice(i, 1);
+      else if (draftPicks.length < 3) draftPicks.push(id);
+      renderDraft();
+      $("#draftConfirm").disabled = draftPicks.length !== 3;
+      $("#draftConfirm").textContent = `确认出战 (${draftPicks.length}/3)`;
+    };
+  });
+}
+$("#draftCancel").addEventListener("click", () => { $("#draftOverlay").classList.remove("active"); });
+$("#draftConfirm").addEventListener("click", () => {
+  if (draftPicks.length !== 3) return;
+  BCFG.picks = [...draftPicks];
+  $("#draftOverlay").classList.remove("active");
+  startBattle();
+});
+
+/* ================= 一键增强（密码 5418）================= */
+$("#cheatBox").addEventListener("click", () => {
+  const pwd = prompt("🔐 输入增强密码：");
+  if (pwd === null) return;
+  if (pwd !== "5418") { alert("密码错误！"); return; }
+  S.coins += 99999;
+  let ups = 0;
+  for (const id in S.own) {
+    if (S.own[id]?.n && starOf(id) < 5) { S.own[id].n++; ups++; }
+  }
+  save(); updateCoins(); renderHome();
+  alert(`⚡ 增强成功！\n金币 +99999\n${ups} 张卡牌升了 1 星（最高5星）`);
+});
 
 /* ================= 启动 ================= */
+function initParticles(){
+  const p = $("#particles");
+  const emojis = ["💩","🔥","⚡","🪙","✨","🤣"];
+  for (let i = 0; i < 12; i++){
+    const s = document.createElement("span");
+    s.textContent = emojis[i % emojis.length];
+    s.style.left = (Math.random() * 100) + "%";
+    s.style.animationDuration = (12 + Math.random() * 12) + "s";
+    s.style.animationDelay = (-Math.random() * 12) + "s";
+    s.style.fontSize = (16 + Math.random() * 18) + "px";
+    s.style.opacity = (0.12 + Math.random() * 0.25).toFixed(2);
+    p.appendChild(s);
+  }
+}
+initParticles();
 autoTeam();
 renderHome();
 </script>
